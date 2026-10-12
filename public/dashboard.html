@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iBOK Online Form</title>
+    <title>نموذج آيبوك الإلكتروني</title>
     <style>
          :root {
             font-family: Arial, Helvetica, sans-serif;
@@ -69,6 +69,7 @@
         .brand {
             margin-top: 9px;
             line-height: 1;
+            text-align: center;
         }
         
         .brand-name {
@@ -235,6 +236,7 @@
             background: #fff4f4;
             font-size: 11px;
             line-height: 1.6;
+            text-align: right;
         }
         
         .details-label {
@@ -265,7 +267,8 @@
         .chat-button {
             position: absolute;
             z-index: 1;
-            left: 20px;
+            right: 20px;
+            left: auto;
             bottom: 13px;
             width: 42px;
             height: 42px;
@@ -387,7 +390,8 @@
                 font-size: 10px;
             }
             .chat-button {
-                left: 12px;
+                right: 12px;
+                left: auto;
             }
         }
         
@@ -407,100 +411,100 @@
     <div class="app">
         <header class="header">
             <div class="header-inner">
-                <div class="welcome">Welcome to iBOK Online Banking</div>
-                <div class="brand" aria-label="iBOK Online Form">
-                    <div class="brand-name">iBOK</div>
-                    <div class="brand-subtitle">Online Form</div>
+                <div class="welcome">مرحباً بكم في الخدمات المصرفية الإلكترونية آيبوك</div>
+                <div class="brand" aria-label="نموذج آيبوك الإلكتروني">
+                    <div class="brand-name">آيبوك</div>
+                    <div class="brand-subtitle">النموذج الإلكتروني</div>
                 </div>
             </div>
         </header>
 
         <main>
             <section class="panel selection-panel" id="selectionPage" aria-labelledby="selectionTitle">
-                <h1 id="selectionTitle">Order Confirmation</h1>
-                <div class="subtitle">Select the required service</div>
+                <h1 id="selectionTitle">تأكيد الطلب</h1>
+                <div class="subtitle">اختر الخدمة المطلوبة</div>
 
-                <div class="services" role="group" aria-label="Available services">
-                    <button class="service" type="button" aria-pressed="false" data-service="Raising the limit on daily transfers">
+                <div class="services" role="group" aria-label="الخدمات المتاحة">
+                    <button class="service" type="button" aria-pressed="false" data-service="رفع سقف التحويل اليومي">
             <span class="service-icon" aria-hidden="true">📈</span>
-            <span class="service-name">Raising the limit on daily transfers</span>
+            <span class="service-name">رفع سقف التحويل اليومي</span>
             <span class="radio" aria-hidden="true"></span>
           </button>
-                    <button class="service" type="button" aria-pressed="false" data-service="Data Update">
+                    <button class="service" type="button" aria-pressed="false" data-service="تحديث البيانات">
             <span class="service-icon" aria-hidden="true">🔄</span>
-            <span class="service-name">Data Update</span>
+            <span class="service-name">تحديث البيانات</span>
             <span class="radio" aria-hidden="true"></span>
           </button>
-                    <button class="service" type="button" aria-pressed="false" data-service="Foreign Exchange Services">
+                    <button class="service" type="button" aria-pressed="false" data-service="خدمات العملات الأجنبية">
             <span class="service-icon" aria-hidden="true">💱</span>
-            <span class="service-name">Foreign Exchange Services</span>
+            <span class="service-name">خدمات العملات الأجنبية</span>
             <span class="radio" aria-hidden="true"></span>
           </button>
-                    <button class="service" type="button" aria-pressed="false" data-service="Wrong Transfers">
+                    <button class="service" type="button" aria-pressed="false" data-service="التحويلات الخاطئة">
             <span class="service-icon" aria-hidden="true">💸</span>
-            <span class="service-name">Wrong Transfers</span>
+            <span class="service-name">التحويلات الخاطئة</span>
             <span class="radio" aria-hidden="true"></span>
           </button>
-                    <button class="service" type="button" aria-pressed="false" data-service="Virtual Visa Card">
+                    <button class="service" type="button" aria-pressed="false" data-service="بطاقة فيزا افتراضية">
             <span class="service-icon" aria-hidden="true">💳</span>
-            <span class="service-name">Virtual Visa Card</span>
+            <span class="service-name">بطاقة فيزا افتراضية</span>
             <span class="radio" aria-hidden="true"></span>
           </button>
-                    <button class="service" type="button" aria-pressed="false" data-service="Account Statement">
+                    <button class="service" type="button" aria-pressed="false" data-service="كشف الحساب">
             <span class="service-icon" aria-hidden="true">📄</span>
-            <span class="service-name">Account Statement</span>
+            <span class="service-name">كشف الحساب</span>
             <span class="radio" aria-hidden="true"></span>
           </button>
-                    <button class="service" type="button" aria-pressed="false" data-service="Security Question Management">
+                    <button class="service" type="button" aria-pressed="false" data-service="إدارة الأسئلة الأمنية">
             <span class="service-icon" aria-hidden="true">🔒</span>
-            <span class="service-name">Security Question Management</span>
+            <span class="service-name">إدارة الأسئلة الأمنية</span>
             <span class="radio" aria-hidden="true"></span>
           </button>
-                    <button class="service" type="button" aria-pressed="false" data-service="Checking and Signature Account">
+                    <button class="service" type="button" aria-pressed="false" data-service="الحساب الجاري وحساب التوقيع">
             <span class="service-icon" aria-hidden="true">🏦</span>
-            <span class="service-name">Checking and Signature Account</span>
+            <span class="service-name">الحساب الجاري وحساب التوقيع</span>
             <span class="radio" aria-hidden="true"></span>
           </button>
                 </div>
 
                 <div class="notice" id="selectionNotice" aria-live="polite"></div>
                 <button class="primary-button green" id="previewButton" type="button">
-          Preview the order before dispatch
+          معاينة الطلب قبل الإرسال
         </button>
             </section>
 
             <section class="panel" id="previewPage" aria-labelledby="previewTitle" hidden>
-                <h1 id="previewTitle">Order Preview</h1>
-                <div class="subtitle">Review the order before submitting</div>
+                <h1 id="previewTitle">معاينة الطلب</h1>
+                <div class="subtitle">مراجعة الطلب قبل الإرسال</div>
 
                 <div class="order-details">
-                    <div class="details-label">Order Details:</div>
+                    <div class="details-label">تفاصيل الطلب:</div>
                     <div class="details-text">
-                        New Order - iBOK Service<br> Service Required: <span id="selectedService"></span>
+                        طلب جديد - خدمة آيبوك<br> الخدمة المطلوبة: <span id="selectedService"></span>
                     </div>
                 </div>
 
                 <button class="primary-button" id="submitButton" type="button">
-          Submit the application
+          إرسال الطلب
         </button>
                 <button class="secondary-button" id="modifyButton" type="button">
-          Modify the service
+          تعديل الخدمة
         </button>
             </section>
         </main>
 
         <footer>
-            <div>iBOK | Bank of Khartoum 2026<br>All rights reserved, Bank of Khartoum, iBOK 2026</div>
-            <button class="chat-button" type="button" aria-label="Contact support">◉</button>
+            <div>آيبوك | بنك الخرطوم 2026<br>كافة الحقوق محفوظة، بنك الخرطوم، آيبوك 2026</div>
+            <button class="chat-button" type="button" aria-label="اتصل بالدعم">◉</button>
         </footer>
     </div>
 
     <div class="modal-backdrop" id="successBackdrop" role="dialog" aria-modal="true" aria-labelledby="successTitle">
         <section class="success-modal">
             <div class="success-icon" aria-hidden="true">✓</div>
-            <h2 id="successTitle">Your application has been successfully submitted</h2>
-            <p>You will be contacted as soon as possible. Thank you for your trust in iBOK 💚</p>
-            <button class="primary-button" id="backButton" type="button">Back to Services</button>
+            <h2 id="successTitle">تم إرسال طلبك بنجاح</h2>
+            <p>سيتم التواصل معك في أقرب وقت ممكن. شكراً لثقتك في آيبوك 💚</p>
+            <button class="primary-button" id="backButton" type="button">العودة إلى الخدمات</button>
         </section>
     </div>
 
@@ -528,7 +532,7 @@
 
         document.getElementById("previewButton").addEventListener("click", () => {
             if (!selectedService) {
-                selectionNotice.textContent = "Please select a service to continue.";
+                selectionNotice.textContent = "يرجى اختيار خدمة للمتابعة.";
                 return;
             }
 
